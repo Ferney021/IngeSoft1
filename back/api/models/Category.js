@@ -10,7 +10,7 @@ module.exports = {
     primaryKey: 'id',
     attributes:{
       id: { type: 'number', columnType: 'bigint', autoIncrement: true, unique: true },
-      parentId: {tyoe: 'number', columnType: 'bigint'},
+      parentId: {type: 'number', columnType: 'bigint'},
       title: {type: 'string'},
       metaTitle: {type: 'string'},
       slug: {type: 'string'},

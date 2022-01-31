@@ -8,7 +8,7 @@
 module.exports = {
   tableName: 'User',
   primaryKey: 'id',
-  atributes: {
+  attributes: {
     id: { type: 'number', columnType: 'bigint', autoIncrement: true, unique: true },
     userId: {type: 'number', columnType: 'bigint'},
     sessionId: {type: 'string'},
