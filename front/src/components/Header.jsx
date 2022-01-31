@@ -93,8 +93,8 @@ const Header = () => {
                   </li>
                 </ul>
               </div>
-              {/* <Link to="/account/signin">Sign In</Link> |{" "}
-              <Link to="/account/signup"> Sign Up</Link> */}
+              <Link to="/account/signin">Sign In</Link> |{" "}
+              <Link to="/account/signup"> Sign Up</Link>
             </div>
           </div>
         </div>
