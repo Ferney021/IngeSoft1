@@ -6,7 +6,6 @@
  */
 module.exports = {
     login: async (req, res) => {
-        console.log(req.body);
         let mobile = req.body.data.mobileNo;
         let pass = req.body.data.password;
         try {
@@ -24,7 +23,6 @@ module.exports = {
     },
 
     register: async (req, res) => {
-        console.log(req.body);
         let email = req.body.email;
         let password = req.body.password;
         let firstName = req.body.firstName;
