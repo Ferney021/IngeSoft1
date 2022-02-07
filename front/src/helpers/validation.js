@@ -20,7 +20,7 @@ const minLength = (min) => (value) =>
   value && value.length < min ? `Must be ${min} characters or more` : undefined;
 export const minLengthMobileNo = minLength(5);
 export const minLengthOTP = minLength(6);
-export const minLength8 = minLength(8);
+export const minLength6 = minLength(6);
 const maxValue = (max) => (value) =>
   value && value > max ? `Must be at least ${max} or less` : undefined;
 export const maxValueMobile = maxValue(999999999999999);

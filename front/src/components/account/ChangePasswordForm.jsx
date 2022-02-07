@@ -2,7 +2,7 @@ import React from "react";
 import { Field, reduxForm } from "redux-form";
 import { compose } from "redux";
 import renderFormGroupField from "../../helpers/renderFormGroupField";
-import { required, maxLength20, minLength8 } from "../../helpers/validation";
+import { required, maxLength20, minLength6 } from "../../helpers/validation";
 import { ReactComponent as IconShieldLockFill } from "bootstrap-icons/icons/shield-lock-fill.svg";
 import { ReactComponent as IconKeyFill } from "bootstrap-icons/icons/key-fill.svg";
 
@@ -26,10 +26,10 @@ const ChangePasswordForm = (props) => {
             component={renderFormGroupField}
             placeholder="******"
             icon={IconShieldLockFill}
-            validate={[required, maxLength20, minLength8]}
+            validate={[required, maxLength20, minLength6]}
             required={true}
             maxLength="20"
-            minLength="8"
+            minLength="6"
             className="mb-3"
           />
           <Field
@@ -39,10 +39,10 @@ const ChangePasswordForm = (props) => {
             component={renderFormGroupField}
             placeholder="******"
             icon={IconShieldLockFill}
-            validate={[required, maxLength20, minLength8]}
+            validate={[required, maxLength20, minLength6]}
             required={true}
             maxLength="20"
-            minLength="8"
+            minLength="6"
             className="mb-3"
           />
           <Field
@@ -52,10 +52,10 @@ const ChangePasswordForm = (props) => {
             component={renderFormGroupField}
             placeholder="******"
             icon={IconShieldLockFill}
-            validate={[required, maxLength20, minLength8]}
+            validate={[required, maxLength20, minLength6]}
             required={true}
             maxLength="20"
-            minLength="8"
+            minLength="6"
             className="mb-3"
           />
           <button

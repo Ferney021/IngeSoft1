@@ -7,11 +7,12 @@ import renderFormField from "../../helpers/renderFormField";
 import {
   required,
   maxLength20,
-  minLength8,
   maxLengthMobileNo,
   minLengthMobileNo,
   digit,
   name,
+  minLength6,
+  email,
 } from "../../helpers/validation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -21,6 +22,7 @@ import {
 } from "@fortawesome/free-brands-svg-icons";
 import { ReactComponent as IconPhoneFill } from "bootstrap-icons/icons/phone-fill.svg";
 import { ReactComponent as IconShieldLockFill } from "bootstrap-icons/icons/shield-lock-fill.svg";
+import { ReactComponent as IconEnvelopeFill } from "bootstrap-icons/icons/envelope.svg";
 
 const SignUpForm = (props) => {
   const { handleSubmit, submitting, onSubmit, submitFailed } = props;
@@ -68,16 +70,29 @@ const SignUpForm = (props) => {
         className="mb-3"
       />
       <Field
+        name="email"
+        type="email"
+        label="Email"
+        component={renderFormGroupField}
+        placeholder="email@example.com"
+        icon={IconEnvelopeFill}
+        validate={[required, email]}
+        required={true}
+        max="50"
+        min="10"
+        className="mb-3"
+      />
+      <Field
         name="password"
         type="password"
         label="Your password"
         component={renderFormGroupField}
         placeholder="******"
         icon={IconShieldLockFill}
-        validate={[required, maxLength20, minLength8]}
+        validate={[required, maxLength20, minLength6]}
         required={true}
         maxLength="20"
-        minLength="8"
+        minLength="6"
         className="mb-3"
       />
       <button

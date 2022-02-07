@@ -11,7 +11,6 @@ module.exports = {
     attributes: {
         id: { type: 'number', columnType: 'bigint', autoIncrement: true, unique: true },
         firstName: { type: 'string' },
-        middleName: { type: 'string' },
         lastName: { type: 'string' },
         mobile: { type: 'string' },
         email: { type: 'string' },

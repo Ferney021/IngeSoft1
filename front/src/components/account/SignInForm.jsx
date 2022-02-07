@@ -6,10 +6,10 @@ import renderFormGroupField from "../../helpers/renderFormGroupField";
 import {
   required,
   maxLength20,
-  minLength8,
   maxLengthMobileNo,
   minLengthMobileNo,
   digit,
+  minLength6,
 } from "../../helpers/validation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -48,10 +48,10 @@ const SignInForm = (props) => {
         component={renderFormGroupField}
         placeholder="******"
         icon={IconShieldLockFill}
-        validate={[required, maxLength20, minLength8]}
+        validate={[required, maxLength20, minLength6]}
         required={true}
         maxLength="20"
-        minLength="8"
+        minLength="6"
         className="mb-3"
       />
       <button
