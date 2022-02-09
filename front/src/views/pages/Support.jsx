@@ -1,240 +1,187 @@
 import React, { Component, lazy } from "react";
 import { Link } from "react-router-dom";
-import { ReactComponent as IconJournalCheck } from "bootstrap-icons/icons/journal-check.svg";
-import { ReactComponent as IconChatRightText } from "bootstrap-icons/icons/chat-right-text.svg";
-import { ReactComponent as IconNewspaper } from "bootstrap-icons/icons/newspaper.svg";
-import { ReactComponent as IconPersonSquare } from "bootstrap-icons/icons/person-square.svg";
-import { ReactComponent as IconReceiptCutoff } from "bootstrap-icons/icons/receipt-cutoff.svg";
-import { ReactComponent as IconCalculator } from "bootstrap-icons/icons/calculator.svg";
-import { ReactComponent as IconCart3 } from "bootstrap-icons/icons/cart3.svg";
+import axios from '../../api.js';
+import * as d3 from 'd3';
+import '../../App.css';
 
-const Search = lazy(() => import("../../components/Search"));
+
+var data = null;
 
 class SupportView extends Component {
   constructor(props) {
     super();
     this.state = {};
   }
+  componentDidMount() {
+    axios.get('/getInfoVentas').then(res => {
+      console.log(res.data);
+      data = res.data.info;
+      this.showData();
+    })
+  }
+
+  showData() {
+    const partition = data => {
+      const root = d3
+        .hierarchy(data)
+        .sum(d => d.value)
+        .sort((a, b) => b.value - a.value);
+      return d3.partition().size([2 * Math.PI, root.height + 1])(root);
+    };
+    const root = partition(data);
+
+    root.each(d => (d.current = d));
+
+    const width = 932;
+
+    const svg = d3
+      .create("svg")
+      .attr("viewBox", [0, 0, width, width])
+      .style("font", "10px sans-serif");
+
+    const g = svg
+      .append("g")
+      .attr("transform", `translate(${width / 2},${width / 2})`);
+
+    const color = d3.scaleOrdinal(
+      d3.quantize(d3.interpolateRainbow, data.children.length + 1)
+    );
+
+    const radius = width / 6;
+
+    const arc = d3
+      .arc()
+      .startAngle(d => d.x0)
+      .endAngle(d => d.x1)
+      .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+      .padRadius(radius * 1.5)
+      .innerRadius(d => d.y0 * radius)
+      .outerRadius(d => Math.max(d.y0 * radius, d.y1 * radius - 1));
+
+    const path = g
+      .append("g")
+      .selectAll("path")
+      .data(root.descendants().slice(1))
+      .join("path")
+      .attr("fill", d => {
+        while (d.depth > 1) d = d.parent;
+        return color(d.data.name);
+      })
+      .attr("fill-opacity", d =>
+        arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0
+      )
+      .attr("d", d => arc(d.current));
+
+    path
+      .filter(d => d.children)
+      .style("cursor", "pointer")
+      .on("click", clicked);
+
+    const format = d3.format(",d");
+
+    path.append("title").text(
+      d =>
+        `${d
+          .ancestors()
+          .map(d => d.data.name)
+          .reverse()
+          .join("/")}\n${format(d.value)}`
+    );
+
+    const label = g
+      .append("g")
+      .attr("pointer-events", "none")
+      .attr("text-anchor", "middle")
+      .style("user-select", "none")
+      .selectAll("text")
+      .data(root.descendants().slice(1))
+      .join("text")
+      .attr("dy", "0.35em")
+      .attr("fill-opacity", d => +labelVisible(d.current))
+      .attr("transform", d => labelTransform(d.current))
+      .text(d => d.data.name);
+
+    const parent = g
+      .append("circle")
+      .datum(root)
+      .attr("r", radius)
+      .attr("fill", "none")
+      .attr("pointer-events", "all")
+      .on("click", clicked);
+
+    function clicked(event, p) {
+      parent.datum(p.parent || root);
+
+      root.each(
+        d =>
+        (d.target = {
+          x0:
+            Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) *
+            2 *
+            Math.PI,
+          x1:
+            Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) *
+            2 *
+            Math.PI,
+          y0: Math.max(0, d.y0 - p.depth),
+          y1: Math.max(0, d.y1 - p.depth)
+        })
+      );
+
+      const t = g.transition().duration(750);
+
+      // Transition the data on all arcs, even the ones that aren’t visible,
+      // so that if this transition is interrupted, entering arcs will start
+      // the next transition from the desired position.
+      path
+        .transition(t)
+        .tween("data", d => {
+          const i = d3.interpolate(d.current, d.target);
+          return t => (d.current = i(t));
+        })
+        .filter(function (d) {
+          return +this.getAttribute("fill-opacity") || arcVisible(d.target);
+        })
+        .attr("fill-opacity", d =>
+          arcVisible(d.target) ? (d.children ? 0.6 : 0.4) : 0
+        )
+        .attrTween("d", d => () => arc(d.current));
+
+      label
+        .filter(function (d) {
+          return +this.getAttribute("fill-opacity") || labelVisible(d.target);
+        })
+        .transition(t)
+        .attr("fill-opacity", d => +labelVisible(d.target))
+        .attrTween("transform", d => () => labelTransform(d.current));
+    }
+
+    function arcVisible(d) {
+      return d.y1 <= 3 && d.y0 >= 1 && d.x1 > d.x0;
+    }
+
+    function labelVisible(d) {
+      return d.y1 <= 3 && d.y0 >= 1 && (d.y1 - d.y0) * (d.x1 - d.x0) > 0.03;
+    }
+
+    function labelTransform(d) {
+      const x = (((d.x0 + d.x1) / 2) * 180) / Math.PI;
+      const y = ((d.y0 + d.y1) / 2) * radius;
+      return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
+    }
+
+    document.getElementById('chart').appendChild(svg.node());
+  }
+
   render() {
     return (
       <React.Fragment>
-        <div className="bg-dark bg-gradient p-5 text-white text-center">
-          <div className="display-5 mb-4">How can we help you today?</div>
-          <div className="container px-5">
-            <Search />
+        <div className="viewChart">
+          <div className="display-1">
+            Estadistica de ventas
           </div>
-        </div>
-        <div className="bg-secondary py-4">
           <div className="container">
-            <div className="row gx-5">
-              <div className="col-md-4">
-                <div className="row bg-white p-4 text-center">
-                  <div className="col-2">
-                    <IconJournalCheck className="i-va display-5 text-warning" />
-                  </div>
-                  <div className="col">
-                    <h5>Knowledge Base</h5>
-                    <div className="small text-muted">
-                      40 Article / 12 Categories
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="row bg-white p-4 text-center">
-                  <div className="col-2">
-                    <IconChatRightText className="i-va display-5 text-success" />
-                  </div>
-                  <div className="col">
-                    <h5>Forums</h5>
-                    <div className="small text-muted">10 Topics / 7 Posts</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="row bg-white p-4 text-center">
-                  <div className="col-2">
-                    <IconNewspaper className="i-va display-5 text-danger" />
-                  </div>
-                  <div className="col">
-                    <h5>News</h5>
-                    <div className="small text-muted">
-                      15 Posts / 12 Categories
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="container pt-3 mb-3">
-          <div className="container">
-            <div className="row gx-3">
-              <div className="col-md-3">
-                <div className="border pt-3">
-                  <div className="text-center py-2">
-                    <IconPersonSquare className="i-va display-6 text-info" />
-                    <div className="font-weight-bold py-2">My Account</div>
-                  </div>
-                  <div className="list-group list-group-flush">
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Cras justo odio
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Dapibus ac facilisis in
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Morbi leo risus
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Porta ac consectetur ac
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Vestibulum at eros
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="border pt-3">
-                  <div className="text-center py-2">
-                    <IconReceiptCutoff className="i-va display-6 text-warning" />
-                    <div className="font-weight-bold py-2">
-                      Charges & Refunds
-                    </div>
-                  </div>
-                  <div className="list-group list-group-flush">
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Cras justo odio
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Dapibus ac facilisis in
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Morbi leo risus
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Porta ac consectetur ac
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Vestibulum at eros
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="border pt-3">
-                  <div className="text-center py-2">
-                    <IconCalculator className="i-va display-6 text-danger" />
-                    <div className="font-weight-bold py-2">
-                      Accounting & Textes
-                    </div>
-                  </div>
-                  <div className="list-group list-group-flush">
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Cras justo odio
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Dapibus ac facilisis in
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Morbi leo risus
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Porta ac consectetur ac
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Vestibulum at eros
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="border pt-3">
-                  <div className="text-center py-2">
-                    <IconCart3 className="i-va display-6 text-success" />
-                    <div className="font-weight-bold py-2">Cart</div>
-                  </div>
-                  <div className="list-group list-group-flush">
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Cras justo odio
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Dapibus ac facilisis in
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Morbi leo risus
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Porta ac consectetur ac
-                    </Link>
-                    <Link
-                      to="/"
-                      className="list-group-item list-group-item-action"
-                    >
-                      Vestibulum at eros
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div id="chart"></div>
           </div>
         </div>
       </React.Fragment>

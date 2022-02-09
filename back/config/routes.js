@@ -11,5 +11,7 @@
 module.exports.routes = {
   'POST /login': 'UserController.login',
   'POST /register': 'UserController.register',
-
+  'GET /getProductsByPage': 'ProductController.getPageProducts',
+  'GET /getInfoVentas': 'OrderController.getData',
+  
 };

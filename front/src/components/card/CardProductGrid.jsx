@@ -19,31 +19,31 @@ const CardProductGrid = (props) => {
           Hot
         </span>
       )}
-      {(product.discountPercentage > 0 || product.discountPrice > 0) && (
+      {(product.discount > 0 || product.discountPrice > 0) && (
         <span
           className={`rounded position-absolute p-2 bg-warning  ml-2 small ${
             product.isNew ? "mt-5" : "mt-2"
           }`}
         >
           -
-          {product.discountPercentage > 0
-            ? product.discountPercentage + "%"
+          {product.discount > 0
+            ? product.discount + "%"
             : "$" + product.discountPrice}
         </span>
       )}
       <div className="card-body">
         <h6 className="card-subtitle mb-2">
           <Link to={product.link} className="text-decoration-none">
-            {product.name}
+            {product.title}
           </Link>
         </h6>
         <div className="my-2">
           <span className="font-weight-bold h5">${product.price}</span>
-          {product.originPrice > 0 && (
-            <del className="small text-muted ml-2">${product.originPrice}</del>
+          {product.price * (1 + product.discount ) > 0 && (
+            <del className="small text-muted ml-2">${Math.round((product.price * (1 + product.discount ) + Number.EPSILON) * 100) / 100}</del>
           )}
           <span className="ml-2">
-            {Array.from({ length: product.star }, (_, key) => (
+            {Array.from({ length: 5 }, (_, key) => (
               <IconStarFill className="text-warning mr-1" key={key} />
             ))}
           </span>

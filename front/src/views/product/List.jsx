@@ -1,7 +1,7 @@
 import React, { lazy, Component } from "react";
-import { data } from "../../data";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTh, faBars } from "@fortawesome/free-solid-svg-icons";
+import axios from '../../api.js';
 const Paging = lazy(() => import("../../components/Paging"));
 const Breadcrumb = lazy(() => import("../../components/Breadcrumb"));
 const FilterCategory = lazy(() => import("../../components/filter/Category"));
@@ -22,37 +22,35 @@ const CardProductList = lazy(() =>
 class ProductListView extends Component {
   state = {
     currentProducts: [],
-    currentPage: null,
-    totalPages: null,
-    totalItems: 0,
+    currentPage: 1,
+    totalPages: 6,
+    totalItems: 50,
     view: "list",
   };
 
-  UNSAFE_componentWillMount() {
-    const totalItems = this.getProducts().length;
-    this.setState({ totalItems });
+  componentDidMount() {
+    this.getProducts(this.state.currentPage);
   }
 
   onPageChanged = (page) => {
-    let products = this.getProducts();
-    const { currentPage, totalPages, pageLimit } = page;
-    const offset = (currentPage - 1) * pageLimit;
-    const currentProducts = products.slice(offset, offset + pageLimit);
-    this.setState({ currentPage, currentProducts, totalPages });
+    this.getProducts(page.currentPage);
+    const { currentPage } = page;
+    this.setState({ currentPage });
   };
 
   onChangeView = (view) => {
     this.setState({ view });
   };
 
-  getProducts = () => {
-    let products = data.products;
-    products = products.concat(products);
-    products = products.concat(products);
-    products = products.concat(products);
-    products = products.concat(products);
-    products = products.concat(products);
-    return products;
+  getProducts = (page) => {
+    console.log(page);
+    axios.get('/getProductsByPage', {params: {page: page}}).then(res => {
+      console.log(res.data);
+      if(res.data.status) {
+        const currentProducts = res.data.prods;
+        this.setState({currentProducts})
+      }
+    })
   };
 
   render() {

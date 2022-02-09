@@ -17,7 +17,7 @@ const CardProductList = (props) => {
           <div className="card-body">
             <h6 className="card-subtitle mr-2 d-inline">
               <Link to={product.link} className="text-decoration-none">
-                {product.name}
+                {product.title}
               </Link>
             </h6>
             {product.isNew && (
@@ -26,9 +26,9 @@ const CardProductList = (props) => {
             {product.isHot && <span className="badge bg-danger mr-2">Hot</span>}
 
             <div>
-              {product.star > 0 &&
-                Array.from({ length: 5 }, (_, key) => {
-                  if (key <= product.star)
+              {
+                Array.from({ length: 4 }, (_, key) => {
+                  if (key <= 5)
                     return (
                       <IconStarFill className="text-warning mr-1" key={key} />
                     );
@@ -38,13 +38,13 @@ const CardProductList = (props) => {
                     );
                 })}
             </div>
-            {product.description &&
-              product.description.includes("|") === false && (
-                <p className="small mt-2">{product.description}</p>
+            {product.content &&
+              product.content.includes("|") === false && (
+                <p className="small mt-2">{product.content}</p>
               )}
-            {product.description && product.description.includes("|") && (
+            {product.content && product.content.includes("|") && (
               <ul className="mt-2">
-                {product.description.split("|").map((desc, idx) => (
+                {product.content.split("|").map((desc, idx) => (
                   <li key={idx}>{desc}</li>
                 ))}
               </ul>
@@ -53,44 +53,44 @@ const CardProductList = (props) => {
         </div>
         <div className="col-md-3">
           <div className="card-body">
-          <div className="mb-2">
-            <span className="font-weight-bold h5">${product.price}</span>
-            {product.originPrice > 0 && (
-              <del className="small text-muted ml-2">
-                ${product.originPrice}
-              </del>
+            <div className="mb-2">
+              <span className="font-weight-bold h5">${product.price}</span>
+              {product.price * (1 + product.discount) > 0 && (
+                <del className="small text-muted ml-2">
+                  ${Math.round((product.price * (1 + product.discount) + Number.EPSILON) * 100) / 100}
+                </del>
+              )}
+              {(product.discount > 0 || product.discountPrice > 0) && (
+                <span className={`rounded p-1 bg-warning ml-2 small`}>
+                  -
+                  {product.discount > 0
+                    ? Math.ceil(product.discount * 100) + "%"
+                    : "$" + product.discountPrice}
+                </span>
+              )}
+            </div>
+            {product.isFreeShipping && (
+              <p className="text-success small mb-2">
+                <IconTruckFill /> Free shipping
+              </p>
             )}
-            {(product.discountPercentage > 0 || product.discountPrice > 0) && (
-              <span className={`rounded p-1 bg-warning ml-2 small`}>
-                -
-                {product.discountPercentage > 0
-                  ? product.discountPercentage + "%"
-                  : "$" + product.discountPrice}
-              </span>
-            )}
-          </div>
-          {product.isFreeShipping && (
-            <p className="text-success small mb-2">
-              <IconTruckFill /> Free shipping
-            </p>
-          )}
 
-          <div className="btn-group btn-block" role="group">
-            <button
-              type="button"
-              className="btn btn-sm btn-primary"
-              title="Add to cart"
-            >
-              <FontAwesomeIcon icon={faCartPlus} />
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-secondary"
-              title="Add to wishlist"
-            >
-              <FontAwesomeIcon icon={faHeart} />
-            </button>
-          </div>
+            <div className="btn-group btn-block" role="group">
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                title="Add to cart"
+              >
+                <FontAwesomeIcon icon={faCartPlus} />
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary"
+                title="Add to wishlist"
+              >
+                <FontAwesomeIcon icon={faHeart} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -13,7 +13,6 @@ module.exports = {
       parentId: {type: 'number', columnType: 'bigint'},
       title: {type: 'string'},
       metaTitle: {type: 'string'},
-      slug: {type: 'string'},
       content: {type: 'string'}
     }
 };
